@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="./assets/style.css" />
+        <title>Mine Sweeper</title>
+    </head>
+    <body>
+        <form id="menu">
+            <ul>
+                <li>
+                    <label for="nickName">Nick name</label>
+                    <input id="nickName" type="text" required />
+                </li>
+                <li>
+                    <label for="gameMode">Game mode</label>
+                    <select name="gameMode" id="gameMode">
+                        <option value="0" selected>Easy</option>
+                        <option value="1">Medium</option>
+                        <option value="2">hard</option>
+                        <option value="3">Very Hard</option>
+                        <option value="4">Insane</option>
+                        <option value="5">Extreme</option>
+                    </select>
+                </li>
+                <li>
+                    <button type="submit">Start</button>
+                </li>
+            </ul>
+        </form>
+        <div id="app"></div>
+        <script type="module" src="./assets/main.js"></script>
+    </body>
+</html>
