@@ -67,8 +67,27 @@ class MineSweeper {
     }
 
     countAdjacentMines() {
-        // define the adjacent directions
         // go through each cell and check if the adjacent cells have a mine and count
+        for (const row of this.grid) {
+            for (const cell of row) {
+                if (cell.isMine) continue;
+                let countedMines = 0;
+                for (const [c, r] of this.adjacentCellsDirections) {
+                    const adjacentCol = cell.col + c;
+                    const adjacentRow = cell.row + r;
+                    // make sure cell is within boundaries
+                    if (
+                        adjacentCol >= 0 &&
+                        adjacentCol < row.length &&
+                        adjacentRow >= 0 &&
+                        adjacentRow < this.grid.length
+                    ) {
+                        if (this.grid[cell.col - c][cell.row - r].isMine) cell.mineCount++;
+                    }
+                }
+                cell.adjacentMineCount = countedMines;
+            }
+        }
     }
 
     handleEvents() {}
