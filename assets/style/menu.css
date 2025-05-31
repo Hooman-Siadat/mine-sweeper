@@ -1,0 +1,39 @@
+form#menu {
+    background-color: var(--bg-color-2);
+    padding: var(--space-lg);
+    border-radius: var(--space-md);
+    box-shadow: 0 0 10px black;
+    border: 1px outset var(--bg-color-5);
+}
+
+ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    list-style: none;
+}
+ul > li {
+    flex: 1;
+    display: flex;
+    gap: var(--space-lg);
+}
+ul > li > *:not(label) {
+    flex: 1;
+}
+ul > li > * {
+    padding: var(--space-md);
+    border-radius: 0.3rem;
+}
+ul > li > :is(button, select, input) {
+    border: 1px outset var(--bg-color-3);
+}
+ul > li > button {
+    background-color: var(--bg-color-3);
+    box-shadow: 0 10px 10px var(--bg-color-4) inset;
+    font-weight: 400;
+    color: var(--text-color-1);
+}
+ul > li > button:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}

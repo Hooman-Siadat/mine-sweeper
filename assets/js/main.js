@@ -1,6 +1,8 @@
 import MineSweeper from "./app.js";
 
+const header = document.querySelector("h1");
 const form = document.querySelector("#menu");
+const cellSize = 2; // in rem
 
 function validateNickName(nickName) {
     return /^[a-zA-Z0-9]+$/.test(nickName) && nickName.length >= 2;
@@ -9,9 +11,10 @@ function validateNickName(nickName) {
 form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const cellSize = 30; // in px
     const nickNameField = document.querySelector("#nickName");
     const nickName = nickNameField.value.trim().toLowerCase();
+    const appElement = document.querySelector("#grid");
+    const gameMode = document.querySelector("#gameMode").value;
 
     if (!validateNickName(nickName)) {
         alert("please enter a valid name");
@@ -20,13 +23,8 @@ form.addEventListener("submit", (e) => {
         return;
     }
 
-    const fields = {
-        appElement: document.querySelector("#app"),
-        nickName: nickName,
-        gameMode: document.querySelector("gameMode"),
-    };
+    header.classList.add("hidden");
+    form.classList.add("hidden");
 
-    form.style.display = "none";
-
-    new MineSweeper(fields, cellSize);
+    new MineSweeper(appElement, nickName, gameMode, cellSize);
 });

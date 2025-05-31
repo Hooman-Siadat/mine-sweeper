@@ -3,15 +3,16 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="./assets/style.css" />
+        <link rel="stylesheet" href="./assets/style/main.css" />
         <title>Mine Sweeper</title>
     </head>
     <body>
+        <h1>MineSweeper</h1>
         <form id="menu">
             <ul>
                 <li>
-                    <label for="nickName">Nick name</label>
-                    <input id="nickName" type="text" required />
+                    <label class="hidden" for="nickName">Nick name</label>
+                    <input id="nickName" type="text" placeholder="Nick name" required />
                 </li>
                 <li>
                     <label for="gameMode">Game mode</label>
@@ -29,7 +30,9 @@
                 </li>
             </ul>
         </form>
-        <div id="app"></div>
-        <script type="module" src="./assets/main.js"></script>
+
+        <div id="grid"></div>
+
+        <script type="module" src="./assets/js/main.js"></script>
     </body>
 </html>
