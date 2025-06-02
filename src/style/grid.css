@@ -1,0 +1,52 @@
+#grid {
+    display: grid;
+    grid-auto-flow: row;
+    border: var(--space-sm) outset var(--bg-gradient-1);
+    border-radius: var(--space-sm);
+    padding: var(--space-xs);
+    background-color: var(--bg-gradient-3);
+    gap: 0.1rem;
+}
+#grid.hidden {
+    display: none;
+}
+.cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    border: 1px solid var(--bg-color-1);
+    background-color: var(--bg-color-8);
+    background-size: 300%;
+    background-position: 5px 0;
+    box-shadow: 2px 2px 2px var(--highlight-light) inset, -2px -2px 2px var(--highlight-dark) inset;
+    border-radius: var(--space-sm);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.defused {
+    background-image: var(--tile-stone);
+}
+.explode {
+    background-image: var(--tile-explosion), var(--tile-grass);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: -5px 0, 0 0;
+}
+.clear {
+    background-image: var(--tile-grass);
+}
+.flagged {
+    color: black;
+    background-image: radial-gradient(hotpink, crimson);
+    background-position: center;
+    background-size: 100%;
+}
+.defused,
+.explode,
+.clear {
+    color: black;
+    box-shadow: none;
+    cursor: default;
+}

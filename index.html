@@ -3,36 +3,41 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="./assets/style/main.css" />
+        <link rel="stylesheet" href="./src/style/main.css" />
         <title>Mine Sweeper</title>
     </head>
     <body>
-        <h1>MineSweeper</h1>
-        <form id="menu">
-            <ul>
-                <li>
-                    <label class="hidden" for="nickName">Nick name</label>
-                    <input id="nickName" type="text" placeholder="Nick name" required />
-                </li>
-                <li>
-                    <label for="gameMode">Game mode</label>
-                    <select name="gameMode" id="gameMode">
-                        <option value="0" selected>Easy</option>
-                        <option value="1">Medium</option>
-                        <option value="2">hard</option>
-                        <option value="3">Very Hard</option>
-                        <option value="4">Insane</option>
-                        <option value="5">Extreme</option>
-                    </select>
-                </li>
-                <li>
-                    <button type="submit">Start</button>
-                </li>
-            </ul>
-        </form>
+        <img class="hidden" src="./src/assets/frankenstein.gif" alt="game over" id="game-over" />
+        <video autoplay muted playsinline id="bg-video">
+            <source type="video/mp4" />
+        </video>
+        <div class="container">
+            <h1>MineSweeper</h1>
+            <form id="menu">
+                <ul>
+                    <li>
+                        <label class="hidden" for="nickName">Nick name</label>
+                        <input id="nickName" type="text" placeholder="Nick name" required />
+                    </li>
+                    <li>
+                        <label for="gameMode">Game mode</label>
+                        <select name="gameMode" id="gameMode">
+                            <option value="0" selected>Easy</option>
+                            <option value="1">Medium</option>
+                            <option value="2">hard</option>
+                            <option value="3">Very Hard</option>
+                            <option value="4">Insane</option>
+                            <option value="5">Extreme</option>
+                        </select>
+                    </li>
+                    <li>
+                        <button type="submit">Start</button>
+                    </li>
+                </ul>
+            </form>
+            <div class="hidden" id="grid"></div>
+        </div>
 
-        <div id="grid"></div>
-
-        <script type="module" src="./assets/js/main.js"></script>
+        <script type="module" src="./src/js/main.js"></script>
     </body>
 </html>

@@ -1,0 +1,99 @@
+@import url("./grid.css");
+@import url("./menu.css");
+
+/* TODO @media screen and (min-width: 1000px) {
+    body {
+        background-color: red;
+    }
+} */
+
+*,
+*::after,
+*::before {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-size: 1rem;
+}
+
+:root {
+    --bg-color-1: #222222;
+    --bg-color-2: #070801;
+    --bg-color-7: #ffff00;
+    --bg-color-8: #5f3506;
+    --bg-gradient-1: rgba(255, 255, 0, 0.5);
+    --bg-gradient-2: rgba(255, 0, 0, 0.5);
+    --bg-gradient-3: rgba(255, 165, 0, 0.5);
+    --text-color-1: #ffffff;
+    --space-xs: 0.1rem;
+    --space-sm: 0.3rem;
+    --space-md: 1rem;
+    --space-lg: 2rem;
+    --space-xl: 3rem;
+    --text-md: 1rem;
+    --text-lg: 2rem;
+    --text-xl: 5rem;
+    --highlight-dark: rgba(0, 0, 0, 0.5);
+    --highlight-light: rgba(255, 255, 255, 0.3);
+    --tile-stone: url("../assets/stone-tile-texture.jpg");
+    --tile-grass: url("../assets/grass-tile-texture.jpg");
+    --tile-explosion: url("../assets/explosion-animation4.gif");
+    --tile-flagged: url("../assets/dynamite.png");
+}
+
+::selection {
+    background-color: transparent;
+}
+
+.hidden {
+    display: none;
+}
+
+body {
+    font-family: sans-serif;
+    background-color: var(--bg-color-2);
+    color: var(--text-color-1);
+    overflow: hidden;
+}
+
+body,
+.container {
+    width: 100vw;
+    width: 100dvw;
+    height: 100vh;
+    height: 100dvh;
+}
+
+.container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+h1 {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-xl);
+    background-image: linear-gradient(90deg, red, yellow, red, orange);
+    background-clip: text;
+    color: transparent;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    /* aspect-ratio: 16/9; */
+    object-fit: cover;
+    object-position: center;
+}
+
+#game-over {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    translate: calc(-50%) 0;
+    z-index: 9999;
+}
