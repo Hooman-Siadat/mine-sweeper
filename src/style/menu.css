@@ -2,10 +2,12 @@ form#menu {
     background: linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(5px);
-    padding: var(--space-lg);
+    padding: var(--space-md);
     border: 2px outset var(--bg-gradient-3);
     border-radius: var(--space-md);
     box-shadow: 0 0 10px black;
+    animation: textGradient 5s ease-in-out infinite alternate; /*remove*/
+    background-size: 500% auto;
 }
 
 ul {
@@ -25,6 +27,7 @@ ul > li > *:not(label) {
 ul > li > * {
     padding: var(--space-sm);
     border-radius: var(--space-sm);
+    font-size: 2rem;
 }
 ul > li > :is(button, select, input) {
     border: 1px outset var(--bg-gradient-1);

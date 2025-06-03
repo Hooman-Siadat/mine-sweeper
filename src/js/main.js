@@ -8,11 +8,14 @@ const fields = {
     header: document.querySelector("h1"),
     menu: document.querySelector("#menu"),
     gameOver: document.querySelector("#game-over"),
+    gameMode: document.querySelector("#game-mode"),
+    footer: document.querySelector("footer"),
+    banner: document.querySelector("h2"),
 };
 const data = {
     gameMode: "",
     nickName: "",
-    cellSize: 1.5, // in rem
+    // cellSize: 1.8, // in rem
     winVideo: "./src/assets/explosion.mp4",
     loseVideo: "./src/assets/atomic-bomb.mp4",
 };
@@ -36,13 +39,14 @@ fields.menu.addEventListener("submit", (e) => {
     }
 
     data.nickName = nickName;
-    data.gameMode = document.querySelector("#gameMode").value;
+    data.gameMode = fields.gameMode.value;
 
     // hide header, menu and grid, reset nickname
     fields.header.classList.add("hidden");
     fields.menu.classList.add("hidden");
-    nickNameField.value = "";
+    fields.footer.classList.add("hidden");
     fields.gridContainer.classList.remove("hidden");
+    nickNameField.value = "";
 
     gameInstance = new MineSweeper(fields, data);
 });
@@ -56,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Remove background video after finished
 fields.bgVideo.addEventListener("ended", () => {
     fields.bgVideo.removeAttribute("src");
-    // fields.bgVideo.style.display = "none";
+    fields.bgVideo.classList.add("hidden");
     // document.body.style.animation = "blackOut 4s ease forwards";
 });
 

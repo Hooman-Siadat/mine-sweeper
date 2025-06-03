@@ -2,26 +2,35 @@ class MineSweeper {
     constructor(fields, data) {
         this.abortController = new AbortController();
         this.isGameOver = false;
+        this.firstClick = true;
         this.grid = [];
+        this.minCellSize = 48; //in px
+        this.gridDimension = {
+            rows: Math.floor(window.innerHeight / this.minCellSize),
+            cols: Math.floor(window.innerWidth / this.minCellSize),
+        };
+        this.totalCells = this.gridDimension.rows * this.gridDimension.cols;
+        this.cellSize = this.getResponsiveCellSize(this.gridDimension.rows, this.gridDimension.cols);
         this.emptyCells = [];
         this.revealedCells = 0;
         this.fields = fields;
         this.data = data;
-        this.mineExplosionDelay = 20; // in ms
-        this.restartDelay = 7000; // in ms
+        this.mineExplosionDelay = 50; // in ms
+        this.restartDelay = 3000; // in ms
         this.VALUE = {
             FALSE: 0,
             TRUE: 1,
         };
-        this.GAME_MODE = Object.freeze({
-            EASY: { rows: 8, cols: 8, mineCount: 10 }, //10
-            MEDIUM: { rows: 12, cols: 12, mineCount: 24 }, //24
-            HARD: { rows: 16, cols: 16, mineCount: 40 }, //40
-            VERY_HARD: { rows: 20, cols: 20, mineCount: 80 }, //80
-            INSANE: { rows: 24, cols: 24, mineCount: 120 }, //120
-            EXTREME: { rows: 30, cols: 30, mineCount: 100 }, //200
-        });
-        this.selectedGameMode = Object.values(this.GAME_MODE)[this.data.gameMode];
+        // defines percentage of mines
+        this.GAME_MODE = {
+            EASY: Math.floor(0.1 * this.totalCells),
+            MEDIUM: Math.floor(0.2 * this.totalCells),
+            HARD: Math.floor(0.3 * this.totalCells),
+            VERY_HARD: Math.floor(0.4 * this.totalCells),
+            INSANE: Math.floor(0.5 * this.totalCells),
+            EXTREME: Math.floor(0.6 * this.totalCells),
+        };
+        this.totalMines = Object.values(this.GAME_MODE)[this.data.gameMode];
         this.adjacentCellsDirections = Object.values({
             NW: [-1, -1],
             N: [0, -1],
@@ -36,13 +45,21 @@ class MineSweeper {
         this.initiate();
     }
 
+    getResponsiveCellSize(rows, cols) {
+        const maxWidth = window.innerWidth;
+        const maxHeight = window.innerHeight;
+        const minWidth = 48;
+
+        const cellSizeByWidth = (maxWidth / cols) * 0.95;
+        const cellSizeByHeight = (maxHeight / rows) * 0.95;
+
+        return Math.min(minWidth, cellSizeByWidth, cellSizeByHeight);
+    }
+
     initiate() {
+        this.playVideo(true);
         // generateGrid
-        this.generateGrid(this.selectedGameMode);
-        // placeMines on the generatedGrid
-        this.placeMines(this.selectedGameMode);
-        // countAdjacentMines
-        this.countAdjacentMines();
+        this.generateGrid(this.gridDimension);
         // drawGrid
         const cells = this.generateCellElements();
         // render
@@ -51,10 +68,10 @@ class MineSweeper {
         this.handleEvents();
     }
 
-    generateGrid(gameMode) {
+    generateGrid(gridDimension) {
         // create a matrix of cell objects cols * rows
-        this.grid = Array.from({ length: gameMode.rows }, (_, r) =>
-            Array.from({ length: gameMode.cols }, (_, c) => ({
+        this.grid = Array.from({ length: gridDimension.rows }, (_, r) =>
+            Array.from({ length: gridDimension.cols }, (_, c) => ({
                 col: c,
                 row: r,
                 isMine: this.VALUE.FALSE,
@@ -65,12 +82,26 @@ class MineSweeper {
         );
     }
 
-    placeMines(gameMode) {
+    placeMinesExcluding(safeRow, safeCol, totalMines) {
+        const excluded = new Set();
+
+        for (let r = -1; r <= 1; r++) {
+            for (let c = -1; c <= 1; c++) {
+                const row = safeRow + r;
+                const col = safeCol + c;
+                if (row >= 0 && row < this.gridDimension.rows && col >= 0 && col < this.gridDimension.cols) {
+                    excluded.add(`${row},${col}`);
+                }
+            }
+        }
+
         let placedMine = 0;
-        while (placedMine < gameMode.mineCount) {
-            const row = Math.floor(Math.random() * gameMode.rows);
-            const col = Math.floor(Math.random() * gameMode.cols);
-            if (!this.grid[row][col].isMine) {
+        while (placedMine < totalMines) {
+            const row = Math.floor(Math.random() * this.gridDimension.rows);
+            const col = Math.floor(Math.random() * this.gridDimension.cols);
+            const key = `${row},${col}`;
+
+            if (!excluded.has(key) && !this.grid[row][col].isMine) {
                 this.grid[row][col].isMine = this.VALUE.TRUE;
                 placedMine++;
             }
@@ -123,11 +154,11 @@ class MineSweeper {
     }
 
     drawGrid(cells) {
-        const cols = this.selectedGameMode.cols;
-        const rows = this.selectedGameMode.rows;
+        const cols = this.gridDimension.cols;
+        const rows = this.gridDimension.rows;
 
         // set grid configuration
-        this.fields.gridContainer.style.gridTemplate = `repeat(${cols}, ${this.data.cellSize}rem) / repeat(${rows}, ${this.data.cellSize}rem)`;
+        this.fields.gridContainer.style.gridTemplate = `repeat(${rows}, ${this.cellSize}px) / repeat(${cols}, ${this.cellSize}px)`;
         // receives the drawn grid and renders it in document
         for (const cell of cells) {
             this.fields.gridContainer.append(cell);
@@ -137,6 +168,7 @@ class MineSweeper {
     clearGrid() {
         this.fields.gridContainer.innerHTML = "";
         this.fields.gridContainer.style = "";
+        // this.fields.gridContainer.classList.add("hidden");
     }
 
     handleEvents() {
@@ -152,11 +184,51 @@ class MineSweeper {
     }
 
     handleClick = (e) => {
-        // e.stopPropagation();
         if (e.target.nodeName === "DIV" && e.target.classList.contains("cell")) {
+            const row = +e.target.dataset.row;
+            const col = +e.target.dataset.col;
+
+            if (this.firstClick) {
+                this.firstClick = false;
+                this.ensureFirstClickSafe(row, col);
+            }
+
             this.revealCell(e.target);
         }
     };
+
+    ensureFirstClickSafe(safeRow, safeCol) {
+        // Clear existing grid and mines
+        this.generateGrid(this.gridDimension);
+
+        // Keep trying to place mines until the clicked cell is safe (adjacentMineCount === 0)
+        let attempts = 0;
+        const maxAttempts = 100;
+
+        do {
+            this.clearMines();
+            this.placeMinesExcluding(safeRow, safeCol, this.totalMines);
+            this.countAdjacentMines();
+            attempts++;
+        } while (this.grid[safeRow][safeCol].adjacentMineCount !== 0 && attempts < maxAttempts);
+
+        if (attempts === maxAttempts) {
+            console.warn("Could not find a 0-tile after 100 tries");
+        }
+
+        const cells = this.generateCellElements();
+        this.clearGrid();
+        this.drawGrid(cells);
+    }
+
+    clearMines() {
+        for (let row of this.grid) {
+            for (let cell of row) {
+                cell.isMine = this.VALUE.FALSE;
+                cell.adjacentMineCount = 0;
+            }
+        }
+    }
 
     handleRightClick = (e) => {
         e.preventDefault();
@@ -187,10 +259,7 @@ class MineSweeper {
         // if theres a mine gameover
         if (+targetCell.dataset.isMine) {
             targetCell.classList.add("explode");
-            this.playVideo(false);
-            await this.revealMines();
-            this.resetGame();
-            // TODO display menu
+            this.playEndSequence(false);
 
             return;
         }
@@ -198,8 +267,7 @@ class MineSweeper {
         // if no mines in adjacent cells
         if (+targetCell.dataset.adjacentMineCount === 0) {
             this.revealedCells++;
-            console.dir(targetCell);
-            console.dir(`total: ${this.revealedCells}`);
+
             // if the adjacentMinesCount equals 0 then check all the adjacent cells and repeat this process
             for (let [c, r] of this.adjacentCellsDirections) {
                 const adjacentCol = +targetCell.dataset.col + c;
@@ -207,9 +275,9 @@ class MineSweeper {
                 // make sure cell is within boundaries
                 if (
                     adjacentCol >= 0 &&
-                    adjacentCol < this.selectedGameMode.cols &&
+                    adjacentCol < this.gridDimension.cols &&
                     adjacentRow >= 0 &&
-                    adjacentRow < this.selectedGameMode.rows
+                    adjacentRow < this.gridDimension.rows
                 ) {
                     const adjacentCell = document.querySelector(
                         `[data-col="${adjacentCol}"][data-row="${adjacentRow}"]`
@@ -226,20 +294,15 @@ class MineSweeper {
             targetCell.dataset.isRevealed = this.VALUE.TRUE;
             this.revealedCells++;
 
-            console.dir(targetCell);
-            console.dir(`total: ${this.revealedCells}`);
-
             targetCell.classList.add("defused");
             targetCell.textContent = targetCell.dataset.adjacentMineCount;
             this.checkVictoryCondition();
         }
     }
 
-    checkVictoryCondition() {
-        const totalCells = this.selectedGameMode.cols * this.selectedGameMode.rows;
-        const totalMines = this.selectedGameMode.mineCount;
-        if (this.revealedCells === totalCells - totalMines) {
-            alert("won the game");
+    async checkVictoryCondition() {
+        if (this.revealedCells === this.totalCells - this.totalMines) {
+            this.playEndSequence(true);
         }
     }
 
@@ -251,9 +314,9 @@ class MineSweeper {
                 const adjacentRow = +targetCell.dataset.row + row;
                 if (
                     adjacentCol >= 0 &&
-                    adjacentCol < this.selectedGameMode.cols &&
+                    adjacentCol < this.gridDimension.cols &&
                     adjacentRow >= 0 &&
-                    adjacentRow < this.selectedGameMode.rows
+                    adjacentRow < this.gridDimension.rows
                 ) {
                     const adjacentCell = document.querySelector(
                         `[data-col="${adjacentCol}"][data-row="${adjacentRow}"]`
@@ -269,9 +332,9 @@ class MineSweeper {
                     const adjacentRow = +targetCell.dataset.row + row;
                     if (
                         adjacentCol >= 0 &&
-                        adjacentCol < this.selectedGameMode.cols &&
+                        adjacentCol < this.gridDimension.cols &&
                         adjacentRow >= 0 &&
-                        adjacentRow < this.selectedGameMode.rows
+                        adjacentRow < this.gridDimension.rows
                     ) {
                         const adjacentCell = document.querySelector(
                             `[data-col="${adjacentCol}"][data-row="${adjacentRow}"]`
@@ -305,8 +368,19 @@ class MineSweeper {
         }
     }
 
-    delay(ms) {
-        return new Promise((resolve) => setTimeout(resolve, ms));
+    delay(ms, signal = this.abortController.signal) {
+        return new Promise((resolve, reject) => {
+            if (signal?.aborted) {
+                return reject(new DOMException("Aborted", "AbortError"));
+            }
+
+            const timeoutId = setTimeout(resolve, ms);
+
+            signal?.addEventListener("abort", () => {
+                clearTimeout(timeoutId);
+                reject(new DOMException("Aborted", "AbortError"));
+            });
+        });
     }
 
     abortTasks() {
@@ -315,9 +389,6 @@ class MineSweeper {
     }
 
     toggleFlag(targetCell) {
-        // toggle the following behavior:
-        // place a flag icon on the cell
-        // set the cell's isFlagged to True
         if (+targetCell.dataset.isRevealed) return;
 
         if (+targetCell.dataset.isFlagged) {
@@ -326,21 +397,42 @@ class MineSweeper {
             targetCell.textContent = "";
         } else {
             targetCell.dataset.isFlagged = this.VALUE.TRUE;
-            targetCell.textContent = "?";
+            targetCell.innerHTML = "&#128681";
             targetCell.classList.add("flagged");
         }
     }
 
     resetGame() {
-        this.clearGrid();
+        this.fields.banner.classList.add("hidden");
+        this.fields.gridContainer.classList.add("hidden"); //remove
+        this.showMenu();
+    }
+
+    async playEndSequence(hasWon) {
+        if (hasWon) {
+            this.clearGrid();
+            this.playVideo(true);
+            this.fields.banner.textContent = "You Won!";
+        } else {
+            this.playVideo(false);
+            this.fields.banner.textContent = "You Lost!";
+            await this.revealMines();
+            this.clearGrid();
+        }
+
+        this.fields.banner.classList.remove("hidden");
+        await this.delay(this.restartDelay);
+        this.resetGame();
+    }
+
+    showMenu() {
         this.fields.header.classList.remove("hidden");
         this.fields.menu.classList.remove("hidden");
-        this.fields.gridContainer.classList.add("hidden");
+        this.fields.footer.classList.remove("hidden");
     }
 
     playVideo(playerWon) {
         let video = null;
-        let playVideoDelay = 0; //in ms
 
         if (playerWon) {
             video = this.data.winVideo;
@@ -348,14 +440,11 @@ class MineSweeper {
             video = this.data.loseVideo;
         }
 
-        // play video with delay
-        setTimeout(() => {
-            this.fields.bgVideo.setAttribute("src", video);
-            this.fields.bgVideo.style.display = "block";
-            this.fields.bgVideo.currentTime = 0; // Rewind to the beginning
-            this.fields.bgVideo.playbackRate = 2;
-            this.fields.bgVideo.play(); // Start playback
-        }, playVideoDelay);
+        this.fields.bgVideo.setAttribute("src", video);
+        this.fields.bgVideo.style.display = "block";
+        this.fields.bgVideo.currentTime = 0; // Rewind to the beginning
+        this.fields.bgVideo.playbackRate = 2;
+        this.fields.bgVideo.play(); // Start playback
     }
 }
 

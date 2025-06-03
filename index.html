@@ -3,11 +3,16 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Modak&display=swap" rel="stylesheet" />
+        <!-- Stylesheets -->
         <link rel="stylesheet" href="./src/style/main.css" />
         <title>Mine Sweeper</title>
     </head>
     <body>
-        <img class="hidden" src="./src/assets/frankenstein.gif" alt="game over" id="game-over" />
+        <h2 class="hidden" id="banner"></h2>
         <video autoplay muted playsinline id="bg-video">
             <source type="video/mp4" />
         </video>
@@ -21,7 +26,7 @@
                     </li>
                     <li>
                         <label for="gameMode">Game mode</label>
-                        <select name="gameMode" id="gameMode">
+                        <select name="gameMode" id="game-mode" title="game mode">
                             <option value="0" selected>Easy</option>
                             <option value="1">Medium</option>
                             <option value="2">hard</option>
@@ -36,6 +41,7 @@
                 </ul>
             </form>
             <div class="hidden" id="grid"></div>
+            <footer>Designed and developed by Hooman Siadat. © 2025 All rights reserved.</footer>
         </div>
 
         <script type="module" src="./src/js/main.js"></script>

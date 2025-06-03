@@ -1,0 +1,28 @@
+:root {
+    --bg-color-1: #222222;
+    --bg-color-2: #070801;
+    --bg-color-7: #ffff00;
+    --bg-color-8: #262c2c;
+    --bg-gradient-1: #172329;
+    --bg-gradient-2: #182025;
+    --bg-gradient-3: #253e4f;
+    --text-color-1: #ffffff;
+    --text-color-2: #666666;
+    --space-xs: 0.1rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 2rem;
+    --space-xl: 5rem;
+    --text-sm: 0.6rem;
+    --text-md: 1rem;
+    --text-lg: 2rem;
+    --text-xl: 6rem;
+    --highlight-dark: rgba(0, 0, 0, 0.5);
+    --highlight-dark2: rgba(255, 255, 255, 0.2);
+    --highlight-light: rgba(255, 255, 255, 0.3);
+    --tile-stone: url("../assets/stone-tile-texture.jpg");
+    --tile-grass: url("../assets/grass-tile-texture.jpg");
+    --tile-explosion: url("../assets/explosion-animation4.gif");
+    --tile-dynamite: url("../assets/dynamite.png");
+    --tile-mine: url("../assets/mine.png");
+}
