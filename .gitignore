@@ -1,0 +1,4 @@
+# .gitignore
+/node_modules/           # Don't commit installed packages
+/coverage/               # Jest test coverage report output
+/.jest-cache/            # Jest cache

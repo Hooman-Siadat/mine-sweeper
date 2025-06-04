@@ -84,7 +84,7 @@ class MineSweeper {
 
     placeMinesExcluding(safeRow, safeCol, totalMines) {
         const excluded = new Set();
-
+        // excluded the 3x3 block around the first click
         for (let r = -1; r <= 1; r++) {
             for (let c = -1; c <= 1; c++) {
                 const row = safeRow + r;
@@ -95,6 +95,7 @@ class MineSweeper {
             }
         }
 
+        // place mines in the grid except the excluded cells
         let placedMine = 0;
         while (placedMine < totalMines) {
             const row = Math.floor(Math.random() * this.gridDimension.rows);
@@ -185,37 +186,27 @@ class MineSweeper {
 
     handleClick = (e) => {
         if (e.target.nodeName === "DIV" && e.target.classList.contains("cell")) {
-            const row = +e.target.dataset.row;
-            const col = +e.target.dataset.col;
+            const firstClickRow = +e.target.dataset.row;
+            const firstClickCol = +e.target.dataset.col;
 
             if (this.firstClick) {
                 this.firstClick = false;
-                this.ensureFirstClickSafe(row, col);
+                this.ensureFirstClickSafe(firstClickRow, firstClickCol);
             }
 
             this.revealCell(e.target);
         }
     };
 
-    ensureFirstClickSafe(safeRow, safeCol) {
+    ensureFirstClickSafe(firstClickRow, firstClickCol) {
         // Clear existing grid and mines
         this.generateGrid(this.gridDimension);
 
-        // Keep trying to place mines until the clicked cell is safe (adjacentMineCount === 0)
-        let attempts = 0;
-        const maxAttempts = 100;
+        this.clearMines();
+        this.placeMinesExcluding(firstClickRow, firstClickCol, this.totalMines);
+        this.countAdjacentMines();
 
-        do {
-            this.clearMines();
-            this.placeMinesExcluding(safeRow, safeCol, this.totalMines);
-            this.countAdjacentMines();
-            attempts++;
-        } while (this.grid[safeRow][safeCol].adjacentMineCount !== 0 && attempts < maxAttempts);
-
-        if (attempts === maxAttempts) {
-            console.warn("Could not find a 0-tile after 100 tries");
-        }
-
+        // generate new cell elements, clear existing grid and draw the new grid
         const cells = this.generateCellElements();
         this.clearGrid();
         this.drawGrid(cells);
@@ -247,8 +238,10 @@ class MineSweeper {
     };
 
     async revealCell(targetCell) {
-        // if is gameover, cell is revealed, is an empty cell
+        let signal = this.abortController.signal;
+        // Skip if game is over, flagged, already revealed, aborted, or processed before
         if (
+            signal.aborted ||
             this.isGameOver ||
             +targetCell.dataset.isFlagged ||
             +targetCell.dataset.isRevealed ||
@@ -256,23 +249,29 @@ class MineSweeper {
         )
             return;
 
-        // if theres a mine gameover
-        if (+targetCell.dataset.isMine) {
-            targetCell.classList.add("explode");
-            this.playEndSequence(false);
+        const isMine = +targetCell.dataset.isMine;
+        const adjacentMineCount = +targetCell.dataset.adjacentMineCount;
 
+        // Game over if it's a mine
+        if (isMine) {
+            targetCell.classList.add("explode");
+            this.gameIsOver(false);
             return;
         }
 
-        // if no mines in adjacent cells
-        if (+targetCell.dataset.adjacentMineCount === 0) {
-            this.revealedCells++;
+        // Reveal the current cell
+        targetCell.dataset.isRevealed = this.VALUE.TRUE;
+        this.revealedCells++;
 
-            // if the adjacentMinesCount equals 0 then check all the adjacent cells and repeat this process
-            for (let [c, r] of this.adjacentCellsDirections) {
-                const adjacentCol = +targetCell.dataset.col + c;
-                const adjacentRow = +targetCell.dataset.row + r;
-                // make sure cell is within boundaries
+        if (adjacentMineCount === 0) {
+            targetCell.classList.add("clear");
+            this.emptyCells.push(targetCell);
+
+            // Recursively reveal all neighbors
+            for (let [dx, dy] of this.adjacentCellsDirections) {
+                const adjacentCol = +targetCell.dataset.col + dx;
+                const adjacentRow = +targetCell.dataset.row + dy;
+
                 if (
                     adjacentCol >= 0 &&
                     adjacentCol < this.gridDimension.cols &&
@@ -282,28 +281,43 @@ class MineSweeper {
                     const adjacentCell = document.querySelector(
                         `[data-col="${adjacentCol}"][data-row="${adjacentRow}"]`
                     );
-                    targetCell.classList.add("clear");
-                    targetCell.dataset.isRevealed = this.VALUE.TRUE;
-
-                    this.emptyCells.push(targetCell);
                     this.revealCell(adjacentCell);
                 }
             }
         } else {
-            // if there is not a mine set the cell as revealed and display adjacentMinesCount
-            targetCell.dataset.isRevealed = this.VALUE.TRUE;
-            this.revealedCells++;
-
             targetCell.classList.add("defused");
-            targetCell.textContent = targetCell.dataset.adjacentMineCount;
-            this.checkVictoryCondition();
+            targetCell.textContent = adjacentMineCount;
         }
+
+        // ✅ Always check victory after revealing any cell
+        this.checkVictoryCondition();
     }
 
     async checkVictoryCondition() {
         if (this.revealedCells === this.totalCells - this.totalMines) {
-            this.playEndSequence(true);
+            this.gameIsOver(true);
         }
+    }
+
+    async gameIsOver(hasWon) {
+        this.abortTasks();
+
+        if (hasWon) {
+            this.isGameOver = true;
+            this.clearGrid();
+            this.playVideo(true);
+            this.fields.banner.textContent = "You Won!";
+        } else {
+            this.playVideo(false);
+            this.fields.banner.textContent = "You Lost!";
+            await this.revealMines();
+            this.isGameOver = true;
+            this.clearGrid();
+        }
+
+        this.fields.banner.classList.remove("hidden");
+        await this.delay(this.restartDelay);
+        this.resetGame();
     }
 
     revealSurrounding(targetCell) {
@@ -361,10 +375,6 @@ class MineSweeper {
             cell.classList.add("explode");
             cell.dataset.isRevealed = this.VALUE.TRUE;
             await this.delay(this.mineExplosionDelay);
-
-            if (index === cells.length - 1) {
-                this.isGameOver = true;
-            }
         }
     }
 
@@ -408,23 +418,6 @@ class MineSweeper {
         this.showMenu();
     }
 
-    async playEndSequence(hasWon) {
-        if (hasWon) {
-            this.clearGrid();
-            this.playVideo(true);
-            this.fields.banner.textContent = "You Won!";
-        } else {
-            this.playVideo(false);
-            this.fields.banner.textContent = "You Lost!";
-            await this.revealMines();
-            this.clearGrid();
-        }
-
-        this.fields.banner.classList.remove("hidden");
-        await this.delay(this.restartDelay);
-        this.resetGame();
-    }
-
     showMenu() {
         this.fields.header.classList.remove("hidden");
         this.fields.menu.classList.remove("hidden");
@@ -440,11 +433,19 @@ class MineSweeper {
             video = this.data.loseVideo;
         }
 
-        this.fields.bgVideo.setAttribute("src", video);
-        this.fields.bgVideo.style.display = "block";
-        this.fields.bgVideo.currentTime = 0; // Rewind to the beginning
-        this.fields.bgVideo.playbackRate = 2;
-        this.fields.bgVideo.play(); // Start playback
+        if (this.fields.bgVideo) {
+            this.fields.bgVideo.setAttribute("src", video);
+            this.fields.bgVideo.addEventListener(
+                "canplaythrough",
+                () => {
+                    this.fields.bgVideo.style.display = "block";
+                    this.fields.bgVideo.currentTime = 0; // Rewind to the beginning
+                    this.fields.bgVideo.playbackRate = 2;
+                    this.fields.bgVideo.play(); // Start playback
+                },
+                { once: true, signal: this.abortController.signal }
+            );
+        }
     }
 }
 
