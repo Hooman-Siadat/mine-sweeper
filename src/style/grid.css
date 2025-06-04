@@ -36,6 +36,7 @@
     background-repeat: no-repeat;
     background-size: cover;
     background-position: -1rem 0, 0 0;
+    background-color: crimson;
 }
 .clear {
     background-image: var(--tile-grass);

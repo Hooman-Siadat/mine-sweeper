@@ -15,7 +15,7 @@ class MineSweeper {
         this.revealedCells = 0;
         this.fields = fields;
         this.data = data;
-        this.mineExplosionDelay = 50; // in ms
+        this.mineExplosionDelay = 20; // in ms
         this.restartDelay = 3000; // in ms
         this.VALUE = {
             FALSE: 0,
